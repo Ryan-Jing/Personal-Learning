@@ -8,7 +8,7 @@ services:
     init: true
     ports:
       # Loopback-only: LAN clients cannot bypass Tailscale Serve.
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${HOST_PORT:-3001}:3000"
     environment:
       NODE_ENV: production
       PORT: "3000"

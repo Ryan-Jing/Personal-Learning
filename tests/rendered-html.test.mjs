@@ -39,13 +39,15 @@ test("renders reusable library routes", async () => {
 });
 
 test("renders collection shelf pages with direct note access", async () => {
-  const [electrical, pcb] = await Promise.all([
+  const [electrical, pcb, marine] = await Promise.all([
     render("/collections/electrical-fundamentals"),
     render("/collections/pcb-design"),
+    render("/collections/marine-electrical-systems"),
   ]);
 
   assert.equal(electrical.status, 200);
   assert.equal(pcb.status, 200);
+  assert.equal(marine.status, 200);
 
   const electricalHtml = await electrical.text();
   assert.match(electricalHtml, /Electrical fundamentals/);
@@ -53,9 +55,17 @@ test("renders collection shelf pages with direct note access", async () => {
   assert.match(electricalHtml, /Motor control fundamentals/);
 
   const pcbHtml = await pcb.text();
+  const visiblePcbHtml = pcbHtml.split('<script id="_R_">')[0];
   assert.match(pcbHtml, /PCB design/);
   assert.match(pcbHtml, /High voltage PCB design/);
   assert.match(pcbHtml, /EMI\/EMC PCB design/);
+  assert.doesNotMatch(visiblePcbHtml, /Creepage, clearance, insulation coordination/);
+
+  const marineHtml = await marine.text();
+  assert.match(marineHtml, /Marine electrical systems/);
+  assert.match(marineHtml, /Marine motors, drivers &amp; PWM/);
+  assert.match(marineHtml, /Marine electrical safety standards/);
+  assert.match(marineHtml, /Waterproofing, corrosion &amp; ignition protection/);
 });
 
 test("renders a rich note with learning blocks and sources", async () => {
@@ -67,4 +77,15 @@ test("renders a rich note with learning blocks and sources", async () => {
   assert.match(html, /Sources &amp; resources/);
   assert.match(html, /MIT OpenCourseWare/);
   assert.match(html, /Interview prompts/);
+});
+
+test("renders marine standards note with primary sources", async () => {
+  const response = await render("/notes/marine-electrical-safety-standards");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /ABYC/);
+  assert.match(html, /ISO 13297:2020/);
+  assert.match(html, /ISO 16315:2026/);
+  assert.match(html, /33 CFR Part 183 Subpart I/);
+  assert.match(html, /National Marine Electronics Association/);
 });

@@ -24,6 +24,8 @@ Open `http://localhost:3000`.
 
 All library structure and note content lives in `content/library.ts`. The UI reads the same typed model for navigation, search, library pages, note pages, related content, and sources. Adding a collection or note does not require a new page component.
 
+JetBrains Mono is self-hosted through `@fontsource/jetbrains-mono` and imported from `app/layout.tsx`. Browsers load the bundled font files from the built app; they do not need JetBrains Mono installed on the operating system. If the bundled font cannot be loaded, CSS falls back to system monospace fonts.
+
 The main layers are:
 
 - `content/library.ts` — library, collection, note, block, and source data.
@@ -42,3 +44,5 @@ npm test
 ## Raspberry Pi deployment
 
 See [`docs/raspberry-pi.md`](docs/raspberry-pi.md) for the complete Docker Compose and Tailscale-only setup.
+
+Docker Compose defaults to `127.0.0.1:3001` on the Pi and forwards that to port `3000` inside the container.

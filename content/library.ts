@@ -106,6 +106,55 @@ const precisionOpAmps: Source = {
   kind: "Course",
 };
 
+const abycStandardsList: Source = {
+  title: "Standards List",
+  publisher: "American Boat & Yacht Council",
+  url: "https://abycinc.org/standards-list/",
+  kind: "Reference",
+};
+
+const isoSmallCraftElectrical: Source = {
+  title: "ISO 13297:2020 — Small craft electrical systems",
+  publisher: "International Organization for Standardization",
+  url: "https://www.iso.org/standard/69551.html",
+  kind: "Reference",
+};
+
+const isoElectricalPropulsion: Source = {
+  title: "ISO 16315:2026 — Small craft electric propulsion systems",
+  publisher: "International Organization for Standardization",
+  url: "https://www.iso.org/standard/84203.html",
+  kind: "Reference",
+};
+
+const isoIgnitionProtection: Source = {
+  title: "ISO 8846:2025 — Ignition protection around flammable gases",
+  publisher: "International Organization for Standardization",
+  url: "https://www.iso.org/standard/87197.html",
+  kind: "Reference",
+};
+
+const iecMarineEmc: Source = {
+  title: "IEC 60533:2015 — EMC for shipboard electrical and electronic installations",
+  publisher: "International Electrotechnical Commission",
+  url: "https://webstore.iec.ch/en/publication/23161",
+  kind: "Reference",
+};
+
+const uscgElectricalSystems: Source = {
+  title: "33 CFR Part 183 Subpart I — Electrical Systems",
+  publisher: "Electronic Code of Federal Regulations",
+  url: "https://www.ecfr.gov/current/title-33/chapter-I/subchapter-S/part-183/subpart-I",
+  kind: "Reference",
+};
+
+const nmeaMarineElectronicsInstaller: Source = {
+  title: "Basic Marine Electronics Installer course and NMEA 0400 installation standard",
+  publisher: "National Marine Electronics Association",
+  url: "https://www.nmea.org/basic-mei-installer.html",
+  kind: "Reference",
+};
+
 const makeOutline = (heading: string, body: string, checklist: string[]): NoteBlock[] => [
   { type: "prose", heading, body: [body] },
   { type: "checklist", heading: "Review checklist", items: checklist },
@@ -216,6 +265,22 @@ export const collections: Collection[] = [
       "connector-and-cable-interfaces",
       "dfm-dfa-and-testability",
       "power-delivery-networks",
+    ],
+  },
+  {
+    id: "marine-electrical-systems",
+    libraryId: "technical",
+    title: "Marine electrical systems",
+    description: "Motor-boat power, propulsion electronics, EMC, installation safety, corrosion, and wet-environment design.",
+    focus: "Marine interview prep",
+    mark: "≈",
+    accent: "blue",
+    noteSlugs: [
+      "marine-motor-drives-and-pwm",
+      "marine-emi-emc-and-cabling",
+      "marine-electrical-safety-standards",
+      "marine-power-distribution-and-batteries",
+      "waterproofing-corrosion-and-ignition-protection",
     ],
   },
   {
@@ -699,6 +764,203 @@ export const notes: Note[] = [
     }),
     sources: [smartGateDrive],
     related: [],
+  },
+  {
+    slug: "marine-motor-drives-and-pwm",
+    libraryId: "technical",
+    collectionId: "marine-electrical-systems",
+    title: "Marine motors, drivers & PWM",
+    summary: "How boat propulsion and actuator motors connect electrical drive design, PWM, current control, thermal limits, regeneration, and fault handling.",
+    readingTime: 19,
+    updatedAt: "Jul 17",
+    stage: "Reviewing",
+    blocks: makeTechnicalGuide({
+      heading: "A marine motor drive is a power converter, control loop, and safety system",
+      overview: [
+        "Small craft equipment may use brushed DC motors for pumps and actuators, BLDC or PMSM machines for efficient propulsion and steering systems, induction machines in larger AC systems, and stepper or servo drives for positioning. The shared principle is that torque follows controlled current while speed and back-EMF determine how much voltage headroom remains.",
+        "PWM does not simply make a motor see a smaller DC voltage. The bridge applies high-speed switching states, the winding inductance smooths current, and the controller chooses recirculation paths, dead time, current limits, and modulation strategy. In a three-phase inverter, six-step commutation is simpler; sinusoidal or field-oriented control reduces torque ripple and can improve efficiency, acoustics, and low-speed control.",
+        "Boat loads are not benign bench loads. Propeller torque rises strongly with speed, water impact can create abrupt load steps, fouling can push a drive toward stall, and deceleration can regenerate energy into the DC bus. Long motor leads increase common-mode current and voltage overshoot at the motor terminals, so the cable, shielding, output filtering, and insulation system are part of the drive design.",
+      ],
+      variables: [
+        ["Motor type and load curve", "Sets torque-speed behavior and control method", "Starting torque, stall, propeller curve, and fouled-load state"],
+        ["Bus voltage and energy storage", "Controls speed range, fault energy, and shock hazard", "Nominal, charging, regenerative, and transient bus voltage"],
+        ["PWM frequency and edge rate", "Trades acoustic noise, ripple, switching loss, and EMI", "Current ripple, device temperature, cable emissions, and ringing"],
+        ["Current measurement", "Enables torque control and fast protection", "Shunt or Hall bandwidth, ADC timing, blanking, and common-mode range"],
+        ["Gate drive and MOSFET margin", "Determines loss, shoot-through immunity, and transient robustness", "Dead time, Miller immunity, avalanche, SOA, and thermal impedance"],
+      ],
+      failure: "A motor controller that works on a short bench cable can fail in a boat because the installed cable adds inductance, capacitance, antenna length, and ground-reference movement. The result can be MOSFET ringing, nuisance current trips, radiated noise into radios, or insulation stress at the motor.",
+      checklist: [
+        "Explain the motor type, commutation method, and why that method fits the load.",
+        "Derive peak current from stall, acceleration, jammed/fouled load, and braking, not free-run current.",
+        "Provide a defined path for regenerated energy: battery acceptance, brake chopper, clamp, or controlled deceleration.",
+        "Review dead time, gate resistance, desaturation or overcurrent response, undervoltage lockout, and thermal shutdown.",
+        "Probe phase current, gate-source voltage, switch-node ringing, bus ripple, and motor-terminal voltage with the installed cable length.",
+      ],
+      prompts: [
+        { question: "Why does PWM create EMI risk?", answer: "Fast voltage and current edges contain high-frequency components. The bridge loop, motor cable, housing, and return paths can convert that energy into conducted or radiated emissions." },
+        { question: "What is the first interview answer for motor torque?", answer: "For DC/BLDC/PMSM machines, torque is primarily controlled by winding current; the driver regulates current while voltage headroom and back-EMF determine speed capability." },
+        { question: "Why does regenerative braking matter on a boat?", answer: "Mechanical energy can raise the DC bus. The design must ensure the battery or clamp path can absorb that energy without overvoltage." },
+      ],
+    }),
+    sources: [isoElectricalPropulsion, smartGateDrive, abycStandardsList],
+    related: ["motor-control-fundamentals", "marine-emi-emc-and-cabling", "marine-electrical-safety-standards"],
+  },
+  {
+    slug: "marine-emi-emc-and-cabling",
+    libraryId: "technical",
+    collectionId: "marine-electrical-systems",
+    title: "Marine EMI/EMC & cabling",
+    summary: "Noise mechanisms in boat electrical systems: PWM drives, chargers, radios, long harnesses, bonding, shielding, filtering, and pre-compliance thinking.",
+    readingTime: 18,
+    updatedAt: "Jul 17",
+    stage: "Reviewing",
+    blocks: makeTechnicalGuide({
+      heading: "On a boat, cables are often the EMC problem",
+      overview: [
+        "A marine system mixes high-current switching loads, battery chargers, alternators, VHF/AIS/GNSS receivers, sensors, pumps, lighting, displays, and long cable runs through a compact conductive and wet environment. Conducted noise can move on the DC bus; radiated noise often comes from common-mode current on external cables.",
+        "Differential-mode noise flows out and back through the intended pair. Common-mode noise flows in the same direction on multiple conductors and returns through parasitic capacitance, bonding structure, water, engine block, shield, or chassis. PWM motor cables, DC-DC converters, switching chargers, and fast digital interfaces are common sources.",
+        "Good marine EMC design starts with zoning. Keep noisy power conversion physically and electrically separated from antennas, receiver front ends, sensor wiring, and low-level analog signals. Filter at the boundary, terminate shields intentionally, avoid pigtail shields for high-frequency noise, and ensure return current has a close path instead of forcing it through a large loop or bonding network.",
+      ],
+      variables: [
+        ["Cable length and routing", "Can turn small common-mode current into an antenna", "Harness separation, loop area, shield termination, and service routing"],
+        ["Power bus impedance", "Controls conducted noise spread and brownout sensitivity", "Battery impedance, fuse blocks, distribution length, and local capacitance"],
+        ["Reference and bonding strategy", "Determines where high-frequency and fault currents flow", "DC negative, chassis, engine block, bonding conductor, and isolated interfaces"],
+        ["Boundary filtering", "Stops noise before it escapes or enters the enclosure", "Connector placement, filter current rating, saturation, and return path"],
+        ["Receiver proximity", "Sets real-world susceptibility", "VHF/AIS/GNSS/radar cables, antenna placement, and sensor cable paths"],
+      ],
+      failure: "Adding a ferrite late can help, but it is not a system design. If the noisy current has already coupled onto a long cable before the ferrite, or if the ferrite saturates with DC current, the root cause remains the layout, return path, shield termination, or switching waveform.",
+      checklist: [
+        "Identify each high dV/dt node, high di/dt loop, and off-board cable before PCB placement is final.",
+        "Put connector filters, TVS devices, and chassis returns at the connector boundary with short current paths.",
+        "Separate motor/charger/power wiring from low-level sensors and antennas; cross at right angles when routing must cross.",
+        "Use twisted pairs for differential or supply/return conductors where loop area matters.",
+        "Reserve options for common-mode chokes, RC snubbers, gate resistance, spread spectrum, and shield termination during validation.",
+      ],
+      prompts: [
+        { question: "Why are long motor leads difficult for EMC?", answer: "They add capacitance and antenna length. PWM edges drive common-mode current along the cable, and reflections/ringing can raise motor-terminal stress." },
+        { question: "Where should an interface filter usually sit?", answer: "At the enclosure or connector boundary, with a short return to the chosen high-frequency reference so noise does not bypass the filter." },
+        { question: "What makes a cable shield ineffective?", answer: "A long pigtail, undefined termination, poor 360-degree contact, corrosion, or routing the shield current through the same reference used by sensitive circuitry." },
+      ],
+    }),
+    sources: [iecMarineEmc, nmeaMarineElectronicsInstaller, analogEmi, analogGrounding],
+    related: ["emi-emc-pcb-design", "marine-motor-drives-and-pwm", "connector-and-cable-interfaces"],
+  },
+  {
+    slug: "marine-electrical-safety-standards",
+    libraryId: "technical",
+    collectionId: "marine-electrical-systems",
+    title: "Marine electrical safety standards",
+    summary: "A practical map of ABYC, ISO, IEC, NMEA, and USCG references relevant to small craft electrical equipment and propulsion systems.",
+    readingTime: 17,
+    updatedAt: "Jul 17",
+    stage: "Reference",
+    blocks: makeTechnicalGuide({
+      heading: "Treat standards as design inputs, not paperwork after the design",
+      overview: [
+        "For a motor-boat electrical-equipment interview, the useful answer is not that one standard exists. The useful answer is that marine systems combine shock/fire risk, ignition risk near fuel vapors, corrosion, vibration, water ingress, battery energy, shore-power interfaces, electromagnetic compatibility, and maintainability by installers who may not be the original designer.",
+        "ABYC publishes many boat-system standards. The current standards list includes electrical topics such as AC/DC electrical systems, storage batteries, lithium-ion batteries, electrical propulsion systems, cathodic protection, ignition protection, lightning protection, three-phase AC systems, and environmental considerations. For U.S. recreational boats, 33 CFR Part 183 Subpart I covers required electrical-system topics for certain gasoline-engine boats, including ignition protection, grounding, batteries, conductors, and overcurrent protection.",
+        "ISO 13297 covers small-craft installed DC and single-phase AC electrical systems within its stated voltage limits. ISO 16315 covers small-craft electric and hybrid propulsion electrical systems. ISO 8846 addresses ignition protection for electrical devices around flammable gases. IEC 60533 is a shipboard EMC reference, while NMEA 0400 is an installation standard used in marine electronics practice.",
+      ],
+      variables: [
+        ["Jurisdiction and market", "Determines legal baseline and customer expectations", "U.S. federal rules, ABYC practice, ISO/CE targets, class or customer requirements"],
+        ["System voltage and energy", "Changes shock, arc, creepage, clearance, and disconnect strategy", "Nominal and maximum voltage, battery chemistry, fault current, and stored energy"],
+        ["Location on vessel", "Changes ignition, water, corrosion, and serviceability requirements", "Engine space, bilge, cockpit, helm, cabin, mast, or exposed deck"],
+        ["Compliance evidence", "Turns engineering claims into reviewable proof", "Requirements matrix, risk analysis, test reports, inspections, and traceability"],
+      ],
+      failure: "The dangerous pattern is designing from generic electronics instincts and checking marine requirements at the end. That can leave late-breaking issues in conductor protection, battery restraint, ignition protection, labeling, access, separation, corrosion, or cable routing that require mechanical redesign.",
+      checklist: [
+        "Build a requirements matrix from the applicable ABYC, ISO, IEC, NMEA, regulatory, and customer documents before schematic freeze.",
+        "Separate legal requirements, voluntary standards, customer requirements, and internal engineering rules.",
+        "Document assumptions: vessel size, propulsion type, fuel type, battery chemistry, voltage class, installation location, and environment.",
+        "Trace every safety requirement to a design feature and a verification method.",
+        "For real product work, use the purchased/current standards text and qualified compliance review; do not rely on summaries.",
+      ],
+      prompts: [
+        { question: "What standards would you mention for small craft electrical systems?", answer: "ABYC electrical standards, ISO 13297 for installed small-craft electrical systems, ISO 16315 for electric propulsion, ISO 8846 for ignition protection, relevant U.S. CFR rules, IEC EMC references, and NMEA installation practice." },
+        { question: "Why is ignition protection a marine topic?", answer: "Gasoline vapor or other flammable gas may accumulate in enclosed spaces. Electrical devices in those areas must be designed so normal operation or faults do not ignite the mixture." },
+        { question: "What evidence makes a safety claim credible?", answer: "A requirements matrix, hazard/risk analysis, rated components, review records, inspection criteria, and test results tied directly to the applicable requirement." },
+      ],
+    }),
+    sources: [abycStandardsList, isoSmallCraftElectrical, isoElectricalPropulsion, isoIgnitionProtection, uscgElectricalSystems, iecMarineEmc, nmeaMarineElectronicsInstaller],
+    related: ["marine-power-distribution-and-batteries", "waterproofing-corrosion-and-ignition-protection"],
+  },
+  {
+    slug: "marine-power-distribution-and-batteries",
+    libraryId: "technical",
+    collectionId: "marine-electrical-systems",
+    title: "Marine power distribution & batteries",
+    summary: "Battery banks, 12/24/48 V distribution, fusing, disconnects, chargers, shore-power interfaces, brownout, lithium BMS, and fault energy.",
+    readingTime: 18,
+    updatedAt: "Jul 17",
+    stage: "Reviewing",
+    blocks: makeTechnicalGuide({
+      heading: "The battery is both a supply and a high-energy fault source",
+      overview: [
+        "Marine equipment often sits on a DC system with high surge current capability, long wiring, uncertain maintenance history, voltage dips during engine cranking, charger ripple, inductive load transients, and corrosion-prone terminations. Nominal 12 V, 24 V, or 48 V labels do not describe the full electrical environment.",
+        "Distribution design is about limiting fault energy close to the source and ensuring conductors, connectors, switches, relays, and PCBs are protected for their actual ampacity. Overcurrent protection should protect the wire first; semiconductor protection may need faster electronic limits. Disconnects, service loops, labeling, and accessibility matter because equipment must be installed and maintained safely.",
+        "Lithium systems add BMS-controlled disconnects, precharge, cell balancing, temperature limits, short-circuit capability, charger compatibility, and failure states where the battery may suddenly open. A motor controller, charger, or DC-DC converter must behave safely when the battery is connected, disconnected, deeply discharged, current-limited, charging, or rejecting regenerative energy.",
+      ],
+      variables: [
+        ["Battery chemistry and configuration", "Sets voltage range, fault current, charging behavior, and BMS behavior", "Lead-acid vs lithium, series/parallel layout, maximum voltage, and disconnect behavior"],
+        ["Conductor protection", "Prevents overheated wiring and fire", "Fuse or breaker location, ampacity, temperature rating, bundling, and voltage drop"],
+        ["Load transients", "Drive resets, nuisance trips, or overvoltage", "Cranking dip, pump inrush, relay coils, motor braking, and charger transitions"],
+        ["Grounding and isolation", "Controls shock, corrosion, noise, and fault detection", "DC negative, bonding system, isolated DC-DC supplies, leakage, and ground faults"],
+      ],
+      failure: "A PCB input fuse does not protect the boat harness if the unprotected cable from the battery can short before reaching the board. In marine power design, protective-device location is as important as its rating.",
+      checklist: [
+        "Draw the full power path from battery positive through protection, switching, load, return, and bonding references.",
+        "Check cold-crank, charger-high, alternator transient, reverse polarity, load dump, and battery-disconnect cases.",
+        "Rate conductors, connectors, PCB copper, relays, fuses, and terminals for continuous current, inrush, and fault clearing.",
+        "Design precharge and inrush limiting for large input capacitors or motor drives.",
+        "Define safe behavior for BMS open, charger present, shore-power connected, and regenerated energy events.",
+      ],
+      prompts: [
+        { question: "Why does voltage drop matter in a 12 V boat system?", answer: "A small absolute drop is a large percentage of system voltage and can cause brownouts, slow motors, dim lighting, relay chatter, or measurement error." },
+        { question: "What should a fuse protect?", answer: "Primarily the conductor and downstream wiring from overheating under fault current; protecting sensitive electronics may require additional faster or coordinated protection." },
+        { question: "Why is lithium battery behavior different?", answer: "The BMS can abruptly limit or disconnect current, and the pack has specific charge, temperature, balancing, and short-circuit constraints that the load must tolerate." },
+      ],
+    }),
+    sources: [abycStandardsList, isoSmallCraftElectrical, uscgElectricalSystems],
+    related: ["power-supplies-and-regulation", "protection-esd-and-transients", "marine-electrical-safety-standards"],
+  },
+  {
+    slug: "waterproofing-corrosion-and-ignition-protection",
+    libraryId: "technical",
+    collectionId: "marine-electrical-systems",
+    title: "Waterproofing, corrosion & ignition protection",
+    summary: "Designing electrical equipment for wet, salty, vibrating, fuel-adjacent environments: sealing, materials, connectors, corrosion, and ignition risk.",
+    readingTime: 16,
+    updatedAt: "Jul 17",
+    stage: "Reviewing",
+    blocks: makeTechnicalGuide({
+      heading: "Marine reliability is environmental design, not just electronics design",
+      overview: [
+        "Boat equipment sees humidity, condensation, spray, salt contamination, temperature cycling, vibration, UV exposure, cleaning chemicals, bilge vapors, and service handling. Water ingress can create leakage, dendritic growth, corrosion, dielectric breakdown, connector fretting, and misleading sensor readings long before a board fully fails.",
+        "Sealing strategy is a mechanical and manufacturing decision. Gaskets need compression control, vents may be needed to avoid pressure-driven water ingress, potting improves environmental resistance but can trap heat or stress components, and conformal coating helps only if coverage, keep-out areas, masking, rework, and contamination control are handled deliberately.",
+        "Ignition protection is separate from waterproofing. A sealed enclosure is not automatically ignition protected, and an ignition-protected device is not automatically suitable for immersion or salt spray. Fuel-adjacent spaces require attention to arcs, hot surfaces, stored energy, relays, switches, connectors, fuses, batteries, venting, and fault containment.",
+      ],
+      variables: [
+        ["Ingress path", "Determines where water reaches electronics", "Connectors, seams, vents, fasteners, cable glands, membranes, and capillary paths"],
+        ["Material pairings", "Drive galvanic corrosion and mechanical durability", "Metals, plating, fasteners, connector shells, gasket material, and electrolyte exposure"],
+        ["Surface contamination", "Reduces insulation resistance and creepage effectiveness", "Salt residue, flux residue, coating voids, and cleaning process"],
+        ["Ignition source control", "Prevents arcs or hot surfaces from igniting vapor", "Switching contacts, fuses, relays, brushed motors, batteries, temperature rise, and enclosure behavior"],
+      ],
+      failure: "A product can pass a brief water spray test and still fail in service because pressure cycling pulls moisture through a connector, salt residue lowers surface resistance, or galvanic corrosion opens a ground, shield, or sense connection months later.",
+      checklist: [
+        "Define the installation environment: exposed deck, cockpit, cabin, bilge, engine compartment, or sealed electronics bay.",
+        "Select connectors, seals, vents, plastics, metals, fasteners, coatings, and labels as one environmental system.",
+        "Control galvanic couples, drainage, condensation paths, and service orientation.",
+        "Keep high-impedance nodes, high voltage spacing, and safety-critical sensing away from contamination-prone edges and connectors.",
+        "For fuel-adjacent locations, evaluate ignition protection using the applicable current standards and regulatory requirements.",
+      ],
+      prompts: [
+        { question: "Why is salt contamination worse than clean water?", answer: "Salt residue is conductive and hygroscopic, so it supports leakage current, corrosion, and reduced insulation resistance even after visible water is gone." },
+        { question: "What is a galvanic corrosion concern?", answer: "Dissimilar metals connected through an electrolyte can create an electrochemical cell, causing the less noble material to corrode." },
+        { question: "Why is sealing not enough for ignition safety?", answer: "Ignition protection requires controlling arcs, hot surfaces, and explosive-gas interaction under defined conditions; a sealed box may still fail, leak, or contain an ignition event poorly." },
+      ],
+    }),
+    sources: [isoIgnitionProtection, uscgElectricalSystems, abycStandardsList],
+    related: ["marine-electrical-safety-standards", "marine-emi-emc-and-cabling", "connector-and-cable-interfaces"],
   },
   {
     slug: "transformers-and-isolation",

@@ -37,7 +37,6 @@ export function CollectionNoteCard({ note, index }: { note: Note; index: number 
       <div>
         <p className="section-kicker">{note.stage}</p>
         <h2>{note.title}</h2>
-        <p>{note.summary}</p>
       </div>
       <div className="collection-note-meta">
         <span>{note.readingTime} min review</span>

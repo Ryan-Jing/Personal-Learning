@@ -2,6 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { AppShell } from "@/components/AppShell";
 import { searchEntries } from "@/content/library";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
+import "@fontsource/jetbrains-mono/700.css";
+import "@fontsource/jetbrains-mono/800.css";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
