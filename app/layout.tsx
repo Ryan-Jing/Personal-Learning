@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: "Commonplace — Personal Learning Library",
-      description: "A private, structured home for lifelong learning.",
+      description: "A private hub for learning.",
       images: [socialImage],
     },
   };
