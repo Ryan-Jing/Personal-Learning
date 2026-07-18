@@ -70,7 +70,7 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
       />
       <aside className={`sidebar ${menuOpen ? "is-open" : ""}`}>
         <Link href="/" className="brand" aria-label="Commonplace home">
-          <span className="brand-mark" aria-hidden="true">C</span>
+          <span className="brand-mark" aria-hidden="true" />
           <span>
             <strong>Commonplace</strong>
             <small>Personal learning library</small>

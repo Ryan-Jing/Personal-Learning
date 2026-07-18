@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const base = new URL(`${protocol}://${host}`);
-  const socialImage = new URL("/og.png", base).toString();
+  const socialImage = new URL("/cpu-icon.png", base).toString();
 
   return {
     metadataBase: base,
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Commonplace — Personal Learning Library",
       description: "Technical concepts, reading notes, projects, and ideas—kept in one quiet place.",
       type: "website",
-      images: [{ url: socialImage, width: 1200, height: 630, alt: "Commonplace personal learning library" }],
+      images: [{ url: socialImage, width: 3840, height: 2160, alt: "Commonplace personal learning library" }],
     },
     twitter: {
       card: "summary_large_image",

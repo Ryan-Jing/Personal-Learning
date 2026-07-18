@@ -103,16 +103,12 @@ a {
 }
 
 .brand-mark {
-  display: grid;
+  display: block;
   width: 38px;
   height: 38px;
-  place-items: center;
-  color: var(--sidebar);
-  background: var(--yellow-bright);
+  flex-shrink: 0;
   border-radius: 8px;
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 800;
+  background: #3b3835 url("/term-icon.png") center / 400% no-repeat;
 }
 
 .brand strong,
