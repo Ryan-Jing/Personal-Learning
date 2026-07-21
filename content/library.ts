@@ -3,6 +3,12 @@ import { networkProtocolNotes } from "./protocols-network";
 import { hostProtocolNotes } from "./protocols-host";
 import { embeddedCoreNotes } from "./embedded-core-notes";
 import { embeddedLifecycleNotes } from "./embedded-lifecycle-notes";
+import { interviewPowerNotes } from "./interview-power-notes";
+import { interviewSignalingNotes } from "./interview-signaling-notes";
+import { benchBringupNotes } from "./bench-bringup-notes";
+import { mechanicalIntegrationNotes } from "./mechanical-integration-notes";
+import { engineeringProcessNotes } from "./engineering-process-notes";
+import { rfEmcNotes } from "./rf-emc-notes";
 
 export type Accent = "yellow" | "orange" | "aqua" | "blue" | "purple" | "green";
 
@@ -252,6 +258,8 @@ export const collections: Collection[] = [
       "analog-filters",
       "adc-dac-signal-conditioning",
       "power-supplies-and-regulation",
+      "buck-converter-first-principles",
+      "power-architecture-and-poe",
       "motor-control-fundamentals",
       "transformers-and-isolation",
       "protection-esd-and-transients",
@@ -328,6 +336,8 @@ export const collections: Collection[] = [
     accent: "purple",
     noteSlugs: [
       "choosing-a-communication-interface",
+      "single-ended-vs-differential-signaling",
+      "signals-and-power-over-distance",
       "uart-fundamentals",
       "spi-bus",
       "i2c-bus",
@@ -349,6 +359,62 @@ export const collections: Collection[] = [
     mark: "⌘",
     accent: "blue",
     noteSlugs: ["embedded-software-architecture", "state-machines", "observability-for-devices"],
+  },
+  {
+    id: "rf-antennas-emc",
+    libraryId: "technical",
+    title: "RF, antennas & EMC",
+    description: "Wireless and noise fundamentals: how antennas radiate and match to 50 Ω, and the component toolbox for controlling EMI and AC/RF noise.",
+    focus: "Wireless & noise",
+    mark: "∿",
+    accent: "aqua",
+    noteSlugs: [
+      "rf-and-antenna-fundamentals",
+      "emi-filtering-and-mitigation",
+    ],
+  },
+  {
+    id: "bench-and-bringup",
+    libraryId: "technical",
+    title: "Bench, bring-up & troubleshooting",
+    description: "Waking a new board, choosing the right instrument, and debugging hardware as a controlled experiment.",
+    focus: "Hands-on practice",
+    mark: "◎",
+    accent: "green",
+    noteSlugs: [
+      "board-bring-up-methodology",
+      "lab-instruments-and-measurement",
+      "structured-hardware-debugging",
+    ],
+  },
+  {
+    id: "hardware-mechanical-integration",
+    libraryId: "technical",
+    title: "Hardware–mechanical integration",
+    description: "The EE↔ME interface: mechanical constraints, shared thermal design, enclosures and sealing, and tolerance stack-up.",
+    focus: "Cross-functional design",
+    mark: "⬢",
+    accent: "orange",
+    noteSlugs: [
+      "pcb-mechanical-constraints",
+      "thermal-co-design-ee-me",
+      "enclosures-and-ingress-protection",
+      "tolerance-stackup-and-fit",
+    ],
+  },
+  {
+    id: "engineering-process",
+    libraryId: "technical",
+    title: "Engineering process & communication",
+    description: "Validation lifecycle, structured root-cause analysis, and driving hardware work across distributed, cross-time-zone teams.",
+    focus: "Process & collaboration",
+    mark: "⟲",
+    accent: "purple",
+    noteSlugs: [
+      "validation-lifecycle-and-v-model",
+      "root-cause-analysis",
+      "distributed-hardware-collaboration",
+    ],
   },
   {
     id: "books-reading",
@@ -3145,6 +3211,12 @@ export const notes: Note[] = [
   ...hostProtocolNotes,
   ...embeddedCoreNotes,
   ...embeddedLifecycleNotes,
+  ...interviewPowerNotes,
+  ...interviewSignalingNotes,
+  ...benchBringupNotes,
+  ...mechanicalIntegrationNotes,
+  ...engineeringProcessNotes,
+  ...rfEmcNotes,
 ];
 
 export type SearchEntry = {

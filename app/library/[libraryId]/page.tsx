@@ -28,7 +28,7 @@ export default async function LibraryPage({ params }: LibraryPageProps) {
   return (
     <div className="page library-page">
       <header className="library-hero">
-        <div className={`hero-mark accent-${library.accent}`} aria-hidden="true">{library.mark}</div>
+        <div className={`hero-mark accent-${library.accent}${library.id === "technical" ? " mark-rotate" : ""}`} aria-hidden="true">{library.mark}</div>
         <div>
           <p className="eyebrow">Library</p>
           <h1>{library.title}</h1>

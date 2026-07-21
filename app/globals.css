@@ -108,7 +108,7 @@ a {
   height: 38px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: #3b3835 url("/term-icon.png") center / 400% no-repeat;
+  background: #3b3835 url("/term-icon.png") center / 100% no-repeat;
 }
 
 .brand strong,
@@ -674,6 +674,11 @@ h3 {
   border: 1px solid currentColor;
   border-radius: 6px;
   font-size: 17px;
+}
+
+/* Upright the sideways electric-arrow glyph (⌁) used as the technical library mark. */
+.mark-rotate {
+  transform: rotate(90deg);
 }
 
 .library-summary-card strong,

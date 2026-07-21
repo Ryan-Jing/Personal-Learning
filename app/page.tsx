@@ -75,7 +75,7 @@ export default function Home() {
                   className="library-summary-card"
                   key={library.id}
                 >
-                  <span className={`library-mark accent-${library.accent}`} aria-hidden="true">
+                  <span className={`library-mark accent-${library.accent}${library.id === "technical" ? " mark-rotate" : ""}`} aria-hidden="true">
                     {library.mark}
                   </span>
                   <span>

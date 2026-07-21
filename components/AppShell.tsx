@@ -83,7 +83,7 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <Link href={item.href} className={active ? "is-active" : ""} key={item.href} onClick={closeMenu}>
-                <span className="nav-glyph" aria-hidden="true">{item.glyph}</span>
+                <span className={`nav-glyph${item.href === "/library/technical" ? " mark-rotate" : ""}`} aria-hidden="true">{item.glyph}</span>
                 {item.label}
               </Link>
             );
