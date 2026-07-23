@@ -21,9 +21,14 @@ test("renders the Commonplace learning dashboard", async () => {
   const html = await response.text();
   assert.match(html, /<title>Commonplace — Personal Learning Library<\/title>/i);
   assert.match(html, /Welcome back, Ryan/);
+  assert.match(html, /Browse by shelf/);
   assert.match(html, /Technical library/);
   assert.match(html, /Personal library/);
-  assert.match(html, /Voltage, current &amp; resistance/);
+  // Core collections from both libraries are shown on the shelf-browse dashboard.
+  assert.match(html, /Electrical fundamentals/);
+  assert.match(html, /Personal projects/);
+  // The removed dashboard widgets should not reappear.
+  assert.doesNotMatch(html, /Continue studying|Study queue|Recently updated/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
 });
 

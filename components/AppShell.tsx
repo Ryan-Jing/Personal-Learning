@@ -24,6 +24,8 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [peek, setPeek] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const breadcrumbs = breadcrumbFor(pathname);
@@ -31,6 +33,28 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
     setQuery("");
+  }, []);
+  const setCollapsedPersisted = useCallback((next: boolean) => {
+    setCollapsed(next);
+    setPeek(false);
+    try {
+      window.localStorage.setItem("sidebar-collapsed", String(next));
+    } catch {
+      // ignore storage failures (private mode, disabled storage)
+    }
+  }, []);
+
+  useEffect(() => {
+    // Restore the persisted preference after hydration; a lazy initializer
+    // would read differently on the server and mismatch the rendered HTML.
+    try {
+      if (window.localStorage.getItem("sidebar-collapsed") === "true") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCollapsed(true);
+      }
+    } catch {
+      // ignore storage failures
+    }
   }, []);
 
   useEffect(() => {
@@ -53,6 +77,23 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
     if (searchOpen) requestAnimationFrame(() => inputRef.current?.focus());
   }, [searchOpen]);
 
+  // While the sidebar is collapsed, reveal it when a mouse approaches the left
+  // ~10% of the viewport. This is proximity-only (no DOM overlay), so page
+  // content stays fully clickable, and it is gated to fine-pointer desktops —
+  // touch devices (e.g. iPad) never fire this and rely on the reveal button.
+  useEffect(() => {
+    if (!collapsed) return;
+    const pointerQuery = window.matchMedia("(min-width: 921px) and (pointer: fine)");
+    if (!pointerQuery.matches) return;
+    const SIDEBAR_WIDTH = 264;
+    function onMouseMove(event: MouseEvent) {
+      if (event.clientX <= window.innerWidth * 0.1) setPeek(true);
+      else if (event.clientX > SIDEBAR_WIDTH) setPeek(false);
+    }
+    window.addEventListener("mousemove", onMouseMove);
+    return () => window.removeEventListener("mousemove", onMouseMove);
+  }, [collapsed]);
+
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return searchEntries.slice(0, 6);
@@ -62,20 +103,37 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
   }, [query, searchEntries]);
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${collapsed ? "is-collapsed" : ""} ${collapsed && peek ? "is-peeking" : ""}`}>
       <button
         className={`mobile-scrim ${menuOpen ? "is-visible" : ""}`}
         aria-label="Close navigation"
         onClick={() => setMenuOpen(false)}
       />
+      <button
+        className="sidebar-peek-trigger"
+        aria-label="Show sidebar"
+        onClick={() => setCollapsedPersisted(false)}
+      >
+        <span aria-hidden="true">»</span>
+      </button>
       <aside className={`sidebar ${menuOpen ? "is-open" : ""}`}>
-        <Link href="/" className="brand" aria-label="Commonplace home">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>
-            <strong>Commonplace</strong>
-            <small>Personal learning library</small>
-          </span>
-        </Link>
+        <div className="sidebar-head">
+          <Link href="/" className="brand" aria-label="Commonplace home">
+            <span className="brand-mark" aria-hidden="true" />
+            <span>
+              <strong>Commonplace</strong>
+              <small>Personal learning library</small>
+            </span>
+          </Link>
+          <button
+            className="sidebar-toggle"
+            onClick={() => setCollapsedPersisted(!collapsed)}
+            aria-label={collapsed ? "Keep sidebar open" : "Hide sidebar"}
+            title={collapsed ? "Keep sidebar open" : "Hide sidebar"}
+          >
+            <span aria-hidden="true">{collapsed ? "»" : "«"}</span>
+          </button>
+        </div>
 
         <nav className="primary-nav" aria-label="Primary navigation">
           <p className="nav-label">Workspace</p>
@@ -96,14 +154,6 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
           <Link href="/collections/pcb-design" onClick={closeMenu}><span className="pin pin-orange" />PCB design</Link>
           <Link href="/collections/embedded-firmware" onClick={closeMenu}><span className="pin pin-aqua" />Embedded &amp; firmware</Link>
         </nav>
-
-        <div className="sidebar-footer">
-          <div className="owner-avatar" aria-hidden="true">RJ</div>
-          <div>
-            <strong>Ryan&apos;s library</strong>
-            <small><span className="status-dot" /> Private by design</small>
-          </div>
-        </div>
       </aside>
 
       <main className="app-main">
