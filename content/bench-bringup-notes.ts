@@ -211,7 +211,7 @@ export const benchBringupNotes: Note[] = [
       },
     ],
     sources: [keysightScopeFundamentals, saleaeDocs, artOfElectronics],
-    related: ["board-bring-up-methodology", "structured-hardware-debugging", "emi-emc-pcb-design"],
+    related: ["board-bring-up-methodology", "structured-hardware-debugging", "emi-emc-pcb-design", "high-speed-signal-integrity"],
   },
   {
     slug: "structured-hardware-debugging",

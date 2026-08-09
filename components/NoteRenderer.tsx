@@ -62,6 +62,19 @@ export function NoteRenderer({ blocks }: { blocks: NoteBlock[] }) {
       );
     }
 
+    if (block.type === "diagram") {
+      return (
+        <section className="content-section" id={id} key={id}>
+          <h2>{block.heading}</h2>
+          {block.intro ? <p>{block.intro}</p> : null}
+          <figure className="diagram-block">
+            <pre>{block.art}</pre>
+            <figcaption>{block.caption}</figcaption>
+          </figure>
+        </section>
+      );
+    }
+
     if (block.type === "callout") {
       return (
         <aside className={`learning-callout callout-${block.tone}`} id={id} key={id}>

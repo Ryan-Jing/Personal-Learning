@@ -28,6 +28,20 @@ const wurthMagnetics: Source = {
   kind: "Reference",
 };
 
+const keysightSpectrum: Source = {
+  title: "Spectrum Analysis Basics (Application Note 150)",
+  publisher: "Keysight Technologies",
+  url: "https://www.keysight.com/us/en/assets/7018-06714/application-notes/5952-0292.pdf",
+  kind: "Documentation",
+};
+
+const keysightVna: Source = {
+  title: "Understanding the Fundamental Principles of Vector Network Analysis",
+  publisher: "Keysight Technologies",
+  url: "https://www.keysight.com/us/en/assets/7018-06841/application-notes/5965-7707.pdf",
+  kind: "Documentation",
+};
+
 export const rfEmcNotes: Note[] = [
   {
     slug: "rf-and-antenna-fundamentals",
@@ -133,7 +147,7 @@ export const rfEmcNotes: Note[] = [
       },
     ],
     sources: [tiAntennaGuide, arrlAntennaBook],
-    related: ["emi-filtering-and-mitigation", "pcb-materials-and-impedance", "single-ended-vs-differential-signaling", "enclosures-and-ingress-protection"],
+    related: ["emi-filtering-and-mitigation", "rf-testing-and-measurement", "drone-rf-links-and-link-budgets", "pcb-materials-and-impedance", "enclosures-and-ingress-protection"],
   },
   {
     slug: "emi-filtering-and-mitigation",
@@ -241,5 +255,103 @@ export const rfEmcNotes: Note[] = [
     ],
     sources: [ottEmc, wurthMagnetics],
     related: ["emi-emc-pcb-design", "rf-and-antenna-fundamentals", "transformers-and-isolation", "decoupling-and-board-level-filtering", "single-ended-vs-differential-signaling"],
+  },
+  {
+    slug: "rf-testing-and-measurement",
+    libraryId: "technical",
+    collectionId: "rf-antennas-emc",
+    title: "RF testing & measurement",
+    summary: "The spectrum analyzer as the RF eye — RBW, span, detectors, and protecting its front end — the VNA workflow for tuning antennas in place (S11, Smith chart, calibration), transmitter and receiver measurements, desense hunting on dense platforms, and honest range testing.",
+    readingTime: 19,
+    updatedAt: "Aug 8",
+    stage: "Reviewing",
+    blocks: [
+      {
+        type: "prose",
+        heading: "Two instruments carve up the RF world",
+        body: [
+          "RF work runs on two complementary instruments, and knowing which question belongs to which is the first skill. The spectrum analyzer answers what energy exists — it sweeps a receiver across a frequency span and plots power versus frequency, revealing carriers, harmonics, spurs, noise floors, modulation bandwidth, and interference: the tool for measuring what a transmitter emits and what an environment contains. The vector network analyzer answers how a network behaves — it stimulates a device with a known swept signal and measures what reflects (S11) and what passes through (S21) in magnitude and phase: the tool for characterizing antennas, filters, cables, and matching networks. A signal generator (often with calibrated output down to −100 dBm and below) completes the trio as the known stimulus for receiver testing.",
+          "The craft with both instruments is largely about not fooling yourself. Every displayed number passes through settings that change its meaning — resolution bandwidth, detector mode, reference level, calibration state — and through a physical path (cables, attenuators, couplers, antennas) whose losses must be accounted. The discipline mirrors the oscilloscope craft in the instruments note: before trusting a reading, ask what the instrument is actually measuring, through what, at what settings, and what it would show if the thing you fear were true.",
+        ],
+      },
+      {
+        type: "prose",
+        heading: "Spectrum analyzer craft: RBW, detectors, and the front end you must protect",
+        body: [
+          "The resolution bandwidth (RBW) is the analyzer's most consequential setting: it is the width of the filter swept across the span, and it sets what you can resolve and what noise floor you see. Narrow RBW separates close-spaced signals and drops the displayed noise floor (noise power scales with bandwidth — 10 dB lower per 10× narrower RBW), at the cost of slower sweeps; wide RBW sweeps fast but smears detail and raises the floor. Comparing a signal against a limit or a sensitivity number is only meaningful with the RBW stated. Detector modes matter the same way: peak detection catches the worst-case burst (right for interference hunting and compliance), while average/RMS detection reads the true power of noise-like or modulated signals — the wrong detector misreads a pulsed or spread signal by many dB. Span and sweep-time interact with RBW (too fast a sweep for the RBW under-reads amplitudes; modern analyzers warn, older ones just lie), and the reference level sets the input attenuation that keeps the analyzer's own mixer linear — overdrive it and the analyzer manufactures harmonics that are not in your signal.",
+          "Above all, protect the front end. A spectrum analyzer input survives perhaps +20 to +30 dBm; a one-watt transmitter is +30 dBm before antenna gain, and connecting a transmitter — or even keying one near a connected antenna — can destroy a five-figure instrument in milliseconds. Transmitter measurements therefore go through calibrated attenuation (30–40 dB power attenuators, directional couplers) sized so the worst case lands comfortably inside the safe window, with the attenuation value added back into every reading. The habit that saves instruments: compute the power budget of the measurement path before connecting anything, every time.",
+        ],
+      },
+      {
+        type: "prose",
+        heading: "The VNA workflow: tuning an antenna where it lives",
+        body: [
+          "The vector network analyzer's defining ritual is calibration: measuring known standards (open, short, load, through — SOLT) at the exact plane where the device will connect, so the instrument can mathematically remove everything between itself and that plane — cables, adapters, their loss and phase. An uncalibrated or stale-calibrated VNA measures its own test leads; calibration moves the measurement reference to the tip of the cable, and re-calibration follows any change to the setup. With that done, S11 (return loss) versus frequency is the antenna-tuning instrument: it shows how much power reflects from the antenna across the band, the dip marking resonance, its depth the match quality (−10 dB return loss ≈ 90% power accepted, VSWR 2:1 — the usual acceptance floor; −20 dB is excellent), and its frequency the thing your matching network must move.",
+          "The workflow for a real product antenna: measure S11 with the antenna mounted in its final position on the final airframe or enclosure — because ground planes, carbon fiber, batteries, and enclosures all detune (the antenna-fundamentals note's lesson made measurable) — then read the Smith chart to see whether the impedance at the target frequency is inductive or capacitive and by how much, choose matching components (the L/pi network from the antenna note), populate, and re-measure. Iterate until the dip sits on the operating band with margin, then verify the tune survives the realistic perturbations: hand effects, battery states, payload changes. S21 measurements extend the same instrument to filters (passband shape, rejection), cables (loss), and antenna-to-antenna isolation on a platform — a direct number for how much a transmitter couples into a neighbouring receiver's port.",
+        ],
+      },
+      {
+        type: "prose",
+        heading: "Transmitter, receiver, and desense measurements",
+        body: [
+          "Transmitter verification is a spectrum-analyzer checklist: carrier power (through the calibrated attenuator, with detector and RBW appropriate to the modulation), frequency accuracy, occupied bandwidth, harmonics (the second and third harmonic of an ISM-band transmitter are the classic compliance failures — measured against the regulatory limit lines), and spurious emissions elsewhere in the spectrum. Near-field probes over the board localize where a spur physically originates the same way they do for EMI — because an RF product's compliance problems are EMI problems with a licensed vocabulary.",
+          "Receiver sensitivity is measured with the calibrated signal generator: reduce the known input level until the receiver hits its error-rate or lock threshold — that level is the sensitivity, and it anchors the link budget. Desense — the loss of sensitivity when the rest of the platform operates — is the measurement that matters on dense systems: measure sensitivity with everything else quiet, then repeat with each aggressor active (transmitter keyed on another band, camera streaming, motors under PWM, digital buses busy) and chart the sensitivity delta per aggressor. A GNSS receiver losing 10 dB of sensitivity when the video transmitter keys is a concrete, attackable number — traced with near-field probes to a harmonic or a coupling path, fixed with separation, shielding, or filtering, and verified by re-measuring the same delta. This aggressor-matrix workflow is the RF equivalent of the failure-signature tables elsewhere in this library: systematic, quantified, one variable at a time.",
+        ],
+      },
+      {
+        type: "prose",
+        heading: "Range testing and the honesty rules",
+        body: [
+          "The final verification is the link in its environment, and its instrument is logged RSSI versus distance. A scaled ground range test — walking or driving the link away while logging signal strength — verifies the budget's slope (free space predicts −6 dB per doubling of distance; faster decay reveals obstructions, multipath, or antenna problems) and finds the margin at mission range without risking an aircraft. Attitude effects are tested deliberately: rotating the platform through its operating orientations while watching RSSI exposes antenna nulls and shadowing that a fixed test never sees. The honesty rules: account every dB in the path (antenna gains, cable losses, attenuators), state the RBW and detector for any power number, verify against a second method when a result surprises (a power meter cross-checks the analyzer; a known-good antenna cross-checks a VNA tune), and log everything with configuration so results regress across builds.",
+          "A note on environments: open-air range tests share the spectrum with the world — coordinate frequencies and power legally, and be aware that the ambient environment (Wi-Fi congestion, other operators) is part of the measurement. Anechoic and shielded chambers remove those variables for pattern and emissions work when repeatability matters more than realism; the field test remains the final word on whether the system works where it must.",
+        ],
+      },
+      {
+        type: "table",
+        heading: "Which instrument answers which question",
+        columns: ["Question", "Instrument", "Key settings / cautions"],
+        rows: [
+          ["What is this transmitter emitting?", "Spectrum analyzer + power attenuator", "RBW stated, right detector, protect the front end"],
+          ["Is the antenna matched on this airframe?", "VNA (S11 / Smith chart)", "Calibrate at the connection plane; measure in final position"],
+          ["How much does TX A couple into RX B?", "VNA (S21 between antenna ports)", "Isolation in dB, across band"],
+          ["What is the receiver's sensitivity?", "Calibrated signal generator", "Reduce level to error threshold; account path loss"],
+          ["What does the platform do to its own receivers?", "Sensitivity vs aggressor matrix", "One aggressor at a time; chart the deltas"],
+          ["Where does this spur come from?", "Near-field probes + analyzer", "Localize on the board, then fix the source or path"],
+          ["Does the link close at mission range?", "Range test with logged RSSI", "Check the −6 dB/doubling slope; test attitudes"],
+        ],
+      },
+      {
+        type: "callout",
+        heading: "Attenuate first, calibrate always, state your settings",
+        body: "The three habits that keep RF measurements honest and instruments alive: compute the power budget of the measurement path before connecting (a keyed transmitter into an unprotected analyzer front end is a destroyed mixer); calibrate the VNA at the plane of measurement and re-calibrate after any setup change; and never quote a power or sensitivity number without the RBW, detector, and path losses that define it.",
+        tone: "warning",
+      },
+      {
+        type: "checklist",
+        heading: "RF measurement review",
+        items: [
+          "Route every transmitter measurement through calibrated attenuation sized for the worst case; add it back into readings.",
+          "Set RBW deliberately: narrow to resolve and lower the floor, wide to sweep fast; state it with every number.",
+          "Match the detector to the signal: peak for interference/compliance, average/RMS for noise-like power.",
+          "SOLT-calibrate the VNA at the connection plane; re-calibrate after any cable or adapter change.",
+          "Tune antennas mounted in final position; verify S11 across realistic perturbations (hands, battery, payload).",
+          "Measure antenna-to-antenna isolation (S21) on dense platforms; build the desense aggressor matrix.",
+          "Range-test with logged RSSI; verify the −6 dB-per-doubling slope and attitude effects.",
+          "Cross-check surprising results with a second method; log configuration with every measurement.",
+        ],
+      },
+      {
+        type: "review",
+        heading: "Active recall",
+        prompts: [
+          { question: "What does RBW control on a spectrum analyzer?", answer: "The width of the swept filter: it sets frequency resolution (separating close signals), the displayed noise floor (10 dB lower per 10× narrower — so sensitivity comparisons need the RBW stated), and sweep time. Wrong RBW or detector misreads pulsed and modulated signals by many dB." },
+          { question: "Why must a VNA be calibrated, and where?", answer: "Calibration (measuring open/short/load/through standards) moves the measurement plane to the exact point of connection, mathematically removing cable and adapter loss and phase. Uncalibrated, the VNA measures its own leads; calibration is redone after any setup change." },
+          { question: "How do you measure and attack desense on a dense platform?", answer: "Measure receiver sensitivity with the platform quiet, then re-measure with each aggressor active one at a time (other transmitters, cameras, motors, buses) and chart the sensitivity loss per aggressor. Localize the coupling with near-field probes and S21 isolation measurements, fix with separation/shielding/filtering, and verify by re-measuring the same delta." },
+          { question: "Why does a transmitter measurement need an attenuator, and what else must be recorded?", answer: "Analyzer front ends survive ~+20–30 dBm and a transmitter can exceed that directly — a 30–40 dB power attenuator keeps the mixer safe and linear (an overdriven mixer manufactures harmonics that aren't real). The attenuation, RBW, detector, and path losses must all be recorded for the number to mean anything." },
+        ],
+      },
+    ],
+    sources: [keysightSpectrum, keysightVna],
+    related: ["rf-and-antenna-fundamentals", "emi-filtering-and-mitigation", "drone-rf-links-and-link-budgets", "lab-instruments-and-measurement", "emi-emc-pcb-design"],
   },
 ];

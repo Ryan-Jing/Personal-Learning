@@ -9,6 +9,18 @@ import { benchBringupNotes } from "./bench-bringup-notes";
 import { mechanicalIntegrationNotes } from "./mechanical-integration-notes";
 import { engineeringProcessNotes } from "./engineering-process-notes";
 import { rfEmcNotes } from "./rf-emc-notes";
+import { gridSystemsNotes } from "./grid-systems-notes";
+import { solarPvNotes } from "./solar-pv-notes";
+import { gridConversionNotes } from "./grid-conversion-notes";
+import { mosfetSwitchingNotes } from "./mosfet-switching-notes";
+import { memorySystemsNotes } from "./memory-systems-notes";
+import { memoryTechnologyNotes } from "./memory-technology-notes";
+import { memoryValidationNotes } from "./memory-validation-notes";
+import { droneSystemsNotes } from "./drone-systems-notes";
+import { sensorFusionFoundationsNotes } from "./sensor-fusion-foundations-notes";
+import { sensorFusionEstimationNotes } from "./sensor-fusion-estimation-notes";
+import { sensorFusionAdvancedNotes } from "./sensor-fusion-advanced-notes";
+import { sensorFusionCaseStudies } from "./sensor-fusion-case-studies";
 
 export type Accent = "yellow" | "orange" | "aqua" | "blue" | "purple" | "green";
 
@@ -44,6 +56,7 @@ export type NoteBlock =
   | { type: "circuit"; heading: string; intro: string; alt: string; voltage: string; resistance: string; current: string; caption: string }
   | { type: "table"; heading: string; columns: string[]; rows: string[][] }
   | { type: "callout"; heading: string; body: string; tone: "note" | "warning" }
+  | { type: "diagram"; heading: string; intro?: string; art: string; caption: string }
   | { type: "checklist"; heading: string; items: string[] }
   | { type: "code"; heading: string; intro: string; language: string; code: string }
   | { type: "review"; heading: string; prompts: { question: string; answer: string }[] };
@@ -254,6 +267,8 @@ export const collections: Collection[] = [
       "diodes-and-rectifiers",
       "bipolar-junction-transistors",
       "mosfet-fundamentals",
+      "mosfet-switching-and-miller-plateau",
+      "active-switch-vs-diode",
       "operational-amplifiers",
       "analog-filters",
       "adc-dac-signal-conditioning",
@@ -361,6 +376,26 @@ export const collections: Collection[] = [
     noteSlugs: ["embedded-software-architecture", "state-machines", "observability-for-devices"],
   },
   {
+    id: "memory-systems",
+    libraryId: "technical",
+    title: "Memory systems & validation",
+    description: "DRAM from cell to controller, the DDR/LPDDR/GDDR/HBM interface families, high-speed signal integrity and training, and the validation discipline that takes memory from first power-on to production.",
+    focus: "Silicon to system",
+    mark: "▥",
+    accent: "purple",
+    noteSlugs: [
+      "memory-hierarchy-and-caches",
+      "dram-fundamentals-and-organization",
+      "dram-timing-and-commands",
+      "memory-controllers-and-scheduling",
+      "ddr-generations-lpddr-gddr-hbm",
+      "ddr-interface-signaling-and-training",
+      "high-speed-signal-integrity",
+      "memory-validation-and-margining",
+      "memory-reliability-ecc-and-rowhammer",
+    ],
+  },
+  {
     id: "rf-antennas-emc",
     libraryId: "technical",
     title: "RF, antennas & EMC",
@@ -371,6 +406,66 @@ export const collections: Collection[] = [
     noteSlugs: [
       "rf-and-antenna-fundamentals",
       "emi-filtering-and-mitigation",
+      "rf-testing-and-measurement",
+    ],
+  },
+  {
+    id: "drones-and-flight-systems",
+    libraryId: "technical",
+    title: "Drones & flight systems",
+    description: "The electronics of autonomous aircraft: platform architecture, LiPo power, radio links and link budgets, and the vibration, environmental, and flight-test discipline that proves them airworthy.",
+    focus: "Aerial systems",
+    mark: "⟁",
+    accent: "green",
+    noteSlugs: [
+      "drone-platform-electronics",
+      "lipo-batteries-and-drone-power",
+      "drone-rf-links-and-link-budgets",
+      "vibration-environmental-and-flight-testing",
+    ],
+  },
+  {
+    id: "sensor-fusion",
+    libraryId: "technical",
+    title: "Sensor fusion & state estimation",
+    description: "Combining imperfect sensors into trustworthy estimates: probability and classification, least-squares sensor models, Bayesian and Kalman filtering, IMU orientation, fuzzy inference, neural networks, and hands-on case studies.",
+    focus: "Estimation & inference",
+    mark: "⊕",
+    accent: "blue",
+    noteSlugs: [
+      "sensor-fusion-foundations",
+      "probabilistic-classifiers",
+      "sensor-models-and-least-squares",
+      "model-selection-and-robust-regression",
+      "weighted-average-fusion",
+      "bayesian-filtering-fundamentals",
+      "kalman-filter",
+      "nonlinear-filters-ekf-ukf-particle",
+      "imu-and-orientation-estimation",
+      "fuzzy-logic-and-inference",
+      "neural-networks-for-sensor-fusion",
+      "sensor-fusion-case-studies",
+    ],
+  },
+  {
+    id: "grid-and-power-systems",
+    libraryId: "technical",
+    title: "Grid & utility-scale power",
+    description: "How the electricity grid is built and balanced, how power moves over transmission lines, and the solar, inverter, and storage electronics that connect to it.",
+    focus: "Energy systems",
+    mark: "⊞",
+    accent: "blue",
+    noteSlugs: [
+      "power-grid-architecture",
+      "ac-power-real-reactive-apparent",
+      "grid-stability-and-inverter-based-resources",
+      "transmission-lines-and-losses",
+      "solar-pv-cell-and-iv-curve",
+      "mppt-maximum-power-point-tracking",
+      "pv-system-topologies-and-array-wiring",
+      "grid-tie-inverters",
+      "battery-storage-for-solar-and-grid",
+      "power-electronics-loss-and-magnetics",
     ],
   },
   {
@@ -1162,7 +1257,7 @@ export const notes: Note[] = [
       ],
     }),
     sources: [smartGateDrive],
-    related: [],
+    related: ["drone-platform-electronics", "mosfet-switching-and-miller-plateau", "buck-converter-first-principles"],
   },
   {
     slug: "marine-motor-drives-and-pwm",
@@ -3217,6 +3312,18 @@ export const notes: Note[] = [
   ...mechanicalIntegrationNotes,
   ...engineeringProcessNotes,
   ...rfEmcNotes,
+  ...gridSystemsNotes,
+  ...solarPvNotes,
+  ...gridConversionNotes,
+  ...mosfetSwitchingNotes,
+  ...memorySystemsNotes,
+  ...memoryTechnologyNotes,
+  ...memoryValidationNotes,
+  ...droneSystemsNotes,
+  ...sensorFusionFoundationsNotes,
+  ...sensorFusionEstimationNotes,
+  ...sensorFusionAdvancedNotes,
+  ...sensorFusionCaseStudies,
 ];
 
 export type SearchEntry = {

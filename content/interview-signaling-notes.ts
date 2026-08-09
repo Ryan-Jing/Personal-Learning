@@ -229,6 +229,6 @@ export const interviewSignalingNotes: Note[] = [
       },
     ],
     sources: [tiRs485Guide, johnsonHighSpeed],
-    related: ["single-ended-vs-differential-signaling", "choosing-a-communication-interface", "rs485-differential-serial", "connector-and-cable-interfaces", "power-architecture-and-poe"],
+    related: ["single-ended-vs-differential-signaling", "choosing-a-communication-interface", "rs485-differential-serial", "connector-and-cable-interfaces", "power-architecture-and-poe", "high-speed-signal-integrity"],
   },
 ];

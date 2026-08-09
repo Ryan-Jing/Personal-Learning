@@ -1256,6 +1256,33 @@ tr:last-child td {
   line-height: 1.7;
 }
 
+.diagram-block {
+  margin: 0;
+  background: var(--sidebar);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.diagram-block pre {
+  margin: 0;
+  padding: 20px;
+  overflow-x: auto;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.diagram-block figcaption {
+  padding: 10px 14px;
+  color: var(--subtle);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .review-card {
   padding: 25px;
   background: var(--surface);
