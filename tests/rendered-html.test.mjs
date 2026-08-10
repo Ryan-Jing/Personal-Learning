@@ -1,13 +1,36 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+const testBasePath = normalizeTestBasePath(process.env.TEST_BASE_PATH);
+
+function normalizeTestBasePath(value) {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed || trimmed === "/") return "";
+
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withLeadingSlash.endsWith("/")
+    ? withLeadingSlash.slice(0, -1)
+    : withLeadingSlash;
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function withBasePath(pathname) {
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  if (!testBasePath) return normalizedPath;
+  return normalizedPath === "/" ? `${testBasePath}/` : `${testBasePath}${normalizedPath}`;
+}
+
 async function render(pathname = "/") {
+  const requestPath = withBasePath(pathname);
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${pathname}`);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${requestPath}`);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request(`http://localhost${pathname}`, { headers: { accept: "text/html" } }),
+    new Request(`http://localhost${requestPath}`, { headers: { accept: "text/html" } }),
     { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
     { waitUntil() {}, passThroughOnException() {} },
   );
@@ -30,6 +53,12 @@ test("renders the Commonplace learning dashboard", async () => {
   // The removed dashboard widgets should not reappear.
   assert.doesNotMatch(html, /Continue studying|Study queue|Recently updated/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
+
+  if (testBasePath) {
+    const escapedBasePath = escapeRegex(testBasePath);
+    assert.match(html, new RegExp(`href="${escapedBasePath}/library/technical"`));
+    assert.match(html, new RegExp(`href="${escapedBasePath}/assets/`));
+  }
 });
 
 test("renders reusable library routes", async () => {

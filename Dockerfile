@@ -7,12 +7,15 @@ RUN npm ci --ignore-scripts --no-audit --no-fund
 
 FROM dependencies AS builder
 COPY . .
+ARG APP_BASE_PATH=""
+ENV APP_BASE_PATH=${APP_BASE_PATH}
 RUN npm run build
 RUN npm prune --omit=dev --ignore-scripts
 
 FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=3000 \
+    APP_BASE_PATH=""
 
 WORKDIR /app
 RUN groupadd --system --gid 1001 commonplace \

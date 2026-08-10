@@ -9,7 +9,7 @@ Commonplace is Ryan's private learning library: a quiet, structured home for tec
 - Rich note blocks for prose, formulas, diagrams, tables, callouts, code, checklists, active recall, and sources.
 - A keyboard-accessible library search (`Cmd/Ctrl + K`).
 - Container packaging for ARM64 Raspberry Pi and x86-64 hosts.
-- A Tailscale Serve deployment that keeps the web app off the public internet.
+- A Tailscale Serve deployment under `/commonplace` that keeps the web app off the public internet.
 
 ## Local development
 
@@ -45,4 +45,4 @@ npm test
 
 See [`docs/raspberry-pi.md`](docs/raspberry-pi.md) for the complete Docker Compose and Tailscale-only setup.
 
-Docker Compose defaults to `127.0.0.1:3001` on the Pi and forwards that to port `3000` inside the container.
+Docker Compose defaults to `127.0.0.1:3001/commonplace/` on the Pi and forwards that to port `3000` inside the container. The same app is intended to be served privately at `https://<machine>.<tailnet>.ts.net/commonplace/`.

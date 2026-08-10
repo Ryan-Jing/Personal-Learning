@@ -5,8 +5,9 @@ Yes—this app can run on a Raspberry Pi Compute Module 5 and be reachable only 
 The privacy boundary is deliberately simple:
 
 1. Docker publishes the app only on the Pi's loopback interface (`127.0.0.1:3001` by default). It is not directly reachable from the LAN.
-2. Tailscale Serve accepts HTTPS connections from your tailnet and proxies them to that loopback address.
-3. Tailscale Funnel is never enabled, so the service is not published to the internet.
+2. The app is built under the `/commonplace` base path so it can share the same Tailscale hostname with other services.
+3. Tailscale Serve accepts HTTPS connections from your tailnet at `/commonplace/` and proxies them to that loopback address.
+4. Tailscale Funnel is never enabled for this app, so the service is not published to the internet.
 
 ## Prerequisites
 
@@ -75,12 +76,12 @@ The Docker image is architecture-neutral at the source level. Building it on the
 Verify the app from the Pi itself:
 
 ```bash
-curl --fail http://127.0.0.1:3001
+curl --fail http://127.0.0.1:3001/commonplace/
 ```
 
 ## Port behavior
 
-This app defaults to host port 3001 because port 3000 is reserved for another local service on this CM5. The container still listens on port 3000 internally; Docker Compose maps the Pi's loopback port 3001 to the container's internal port 3000.
+This app defaults to host port 3001 because port 3000 is reserved for another local service on this CM5. It also defaults to the `/commonplace` base path so the Tailscale hostname can host multiple applications cleanly. The container still listens on port 3000 internally; Docker Compose maps the Pi's loopback port 3001 to the container's internal port 3000.
 
 The `compose.yaml` file should contain:
 
@@ -88,21 +89,30 @@ The `compose.yaml` file should contain:
 - "127.0.0.1:${HOST_PORT:-3001}:3000"
 ```
 
+and build/runtime configuration for the base path:
+
+```yaml
+APP_BASE_PATH: ${APP_BASE_PATH:-/commonplace}
+```
+
 If you ever need to run this app on a different loopback port, set `HOST_PORT`:
 
 ```bash
 HOST_PORT=3010 docker compose up -d --build
-curl --fail http://127.0.0.1:3010
+curl --fail http://127.0.0.1:3010/commonplace/
 ```
 
 For a permanent Pi-local override, create a project-local `.env` file:
 
 ```bash
-echo 'HOST_PORT=3010' > .env
+cat > .env <<EOF
+HOST_PORT=3001
+APP_BASE_PATH=/commonplace
+EOF
 docker compose up -d --build
 ```
 
-You do not need to change the `Dockerfile` for host port changes.
+Use `APP_BASE_PATH=/` only if you intentionally want the app to run at the hostname root again.
 
 If Compose still tries to bind `127.0.0.1:3000`, the Pi likely does not have the latest `compose.yaml`. Run:
 
@@ -124,10 +134,10 @@ If you still need `sudo` for Docker commands, prefer the `.env` file approach so
 Run this once on the Pi:
 
 ```bash
-sudo tailscale serve --bg --https=443 http://127.0.0.1:3001
+sudo tailscale serve --bg --https=443 --set-path=/commonplace/ http://127.0.0.1:3001/commonplace/
 ```
 
-Tailscale prints the private `https://<machine-name>.<tailnet>.ts.net` address. Open that URL from any authenticated device on the same tailnet.
+Open `https://<machine-name>.<tailnet>.ts.net/commonplace/` from any authenticated device on the same tailnet.
 
 Check or remove the proxy configuration with:
 
@@ -150,18 +160,19 @@ After making changes on another machine and pushing them, update the running Pi 
 git pull
 docker compose up -d --build
 docker compose ps
-curl --fail http://127.0.0.1:3001
+curl --fail http://127.0.0.1:3001/commonplace/
 ```
 
-If you intentionally overrode the host port with `.env`, use that same port in the curl and Tailscale Serve commands.
+If you intentionally overrode the host port or base path with `.env`, use those same values in the curl and Tailscale Serve commands.
 
-Refresh Tailscale Serve only when the local port changed, or when you want to reset the proxy explicitly:
+Refresh Tailscale Serve only when the local port or base path changed:
 
 ```bash
-sudo tailscale serve reset
-sudo tailscale serve --bg --https=443 http://127.0.0.1:3001
+sudo tailscale serve --bg --https=443 --set-path=/commonplace/ http://127.0.0.1:3001/commonplace/
 tailscale serve status
 ```
+
+If you run `sudo tailscale serve reset`, re-add any other Serve routes that share this host.
 
 If the local port did not change, Tailscale Serve continues pointing at the same loopback address and the private URL stays the same. After successful updates, you can remove unused old images:
 

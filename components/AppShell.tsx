@@ -11,12 +11,22 @@ const primaryNav = [
   { href: "/library/personal", label: "Personal library", glyph: "◇" },
 ];
 
+function routePath(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+  const routeStart = segments.findIndex((segment) =>
+    segment === "library" || segment === "collections" || segment === "notes"
+  );
+
+  return routeStart >= 0 ? `/${segments.slice(routeStart).join("/")}` : "/";
+}
+
 function breadcrumbFor(pathname: string) {
-  if (pathname === "/") return ["Library", "Overview"];
-  if (pathname.includes("/library/technical")) return ["Library", "Technical"];
-  if (pathname.includes("/library/personal")) return ["Library", "Personal"];
-  if (pathname.startsWith("/collections/")) return ["Library", "Collection"];
-  if (pathname.startsWith("/notes/")) return ["Library", "Study note"];
+  const path = routePath(pathname);
+  if (path === "/") return ["Library", "Overview"];
+  if (path.includes("/library/technical")) return ["Library", "Technical"];
+  if (path.includes("/library/personal")) return ["Library", "Personal"];
+  if (path.startsWith("/collections/")) return ["Library", "Collection"];
+  if (path.startsWith("/notes/")) return ["Library", "Study note"];
   return ["Library"];
 }
 
