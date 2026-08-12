@@ -49,6 +49,8 @@ test("renders the Commonplace learning dashboard", async () => {
   assert.match(html, /Personal library/);
   // Core collections from both libraries are shown on the shelf-browse dashboard.
   assert.match(html, /Electrical fundamentals/);
+  assert.match(html, /Camera systems &amp; imaging/);
+  assert.match(html, /Access &amp; lock systems/);
   assert.match(html, /Personal projects/);
   // The removed dashboard widgets should not reappear.
   assert.doesNotMatch(html, /Continue studying|Study queue|Recently updated/);
@@ -73,15 +75,19 @@ test("renders reusable library routes", async () => {
 });
 
 test("renders collection shelf pages with direct note access", async () => {
-  const [electrical, pcb, marine] = await Promise.all([
+  const [electrical, pcb, marine, camera, access] = await Promise.all([
     render("/collections/electrical-fundamentals"),
     render("/collections/pcb-design"),
     render("/collections/marine-electrical-systems"),
+    render("/collections/camera-systems"),
+    render("/collections/access-lock-systems"),
   ]);
 
   assert.equal(electrical.status, 200);
   assert.equal(pcb.status, 200);
   assert.equal(marine.status, 200);
+  assert.equal(camera.status, 200);
+  assert.equal(access.status, 200);
 
   const electricalHtml = await electrical.text();
   assert.match(electricalHtml, /Electrical fundamentals/);
@@ -100,6 +106,16 @@ test("renders collection shelf pages with direct note access", async () => {
   assert.match(marineHtml, /Marine motors, drivers &amp; PWM/);
   assert.match(marineHtml, /Marine electrical safety standards/);
   assert.match(marineHtml, /Waterproofing, corrosion &amp; ignition protection/);
+
+  const cameraHtml = await camera.text();
+  assert.match(cameraHtml, /Camera systems &amp; imaging/);
+  assert.match(cameraHtml, /Image sensor electrical behavior/);
+  assert.match(cameraHtml, /Camera testing, validation &amp; production/);
+
+  const accessHtml = await access.text();
+  assert.match(accessHtml, /Access &amp; lock systems/);
+  assert.match(accessHtml, /Electric locks &amp; door hardware/);
+  assert.match(accessHtml, /Alarms, sensors &amp; false-alarm control/);
 });
 
 test("renders a rich note with learning blocks and sources", async () => {
@@ -122,4 +138,26 @@ test("renders marine standards note with primary sources", async () => {
   assert.match(html, /ISO 16315:2026/);
   assert.match(html, /33 CFR Part 183 Subpart I/);
   assert.match(html, /National Marine Electronics Association/);
+});
+
+test("renders camera and access notes with standards-oriented sources", async () => {
+  const [camera, access] = await Promise.all([
+    render("/notes/camera-testing-validation-and-production"),
+    render("/notes/access-system-validation-and-production"),
+  ]);
+
+  assert.equal(camera.status, 200);
+  assert.equal(access.status, 200);
+
+  const cameraHtml = await camera.text();
+  assert.match(cameraHtml, /EMVA 1288/);
+  assert.match(cameraHtml, /ISO 12233:2024/);
+  assert.match(cameraHtml, /ISO 15739:2023/);
+  assert.match(cameraHtml, /MIPI CSI-2/);
+
+  const accessHtml = await access.text();
+  assert.match(accessHtml, /UL 294/);
+  assert.match(accessHtml, /Open Supervised Device Protocol/);
+  assert.match(accessHtml, /IEC 60839-11-5:2020/);
+  assert.match(accessHtml, /ONVIF/);
 });

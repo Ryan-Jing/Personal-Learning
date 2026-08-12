@@ -26,6 +26,7 @@
   --green-bright: #b8bb26;
   --red: #cc241d;
   --sidebar-width: 264px;
+  --topbar-height: 64px;
   --content-width: 1240px;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
@@ -83,8 +84,13 @@ a {
 }
 
 .sidebar {
+  /* Starts below the full-width top bar so the breadcrumb strip is never
+     covered by the sidebar (and never triggers its hover reveal). */
   position: fixed;
-  inset: 0 auto 0 0;
+  top: var(--topbar-height);
+  right: auto;
+  bottom: 0;
+  left: 0;
   z-index: 30;
   display: flex;
   width: var(--sidebar-width);
@@ -248,7 +254,7 @@ a {
 }
 
 .app-main {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--topbar-height));
   margin-left: var(--sidebar-width);
   min-width: 0;
   transition: margin-left 0.24s ease;
@@ -308,11 +314,13 @@ a {
 }
 
 .topbar {
+  /* Sits above the sidebar (z-30) and spans the full viewport width, so the
+     sidebar tucks underneath it rather than beside it. */
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 40;
   display: flex;
-  height: 64px;
+  height: var(--topbar-height);
   align-items: center;
   justify-content: space-between;
   gap: 24px;
@@ -326,19 +334,54 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   margin-right: auto;
+  overflow: hidden;
   color: var(--subtle);
   font-size: 12px;
+  white-space: nowrap;
 }
 
-.breadcrumbs span {
+.breadcrumbs .crumb {
   display: flex;
+  align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+
+/* Ancestors hold their size; only the current page truncates when space runs out. */
+.breadcrumbs .crumb:not(:last-child) {
+  flex: 0 0 auto;
+}
+
+.breadcrumbs .crumb:last-child {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.breadcrumbs .crumb-sep {
+  color: var(--border-strong);
+}
+
+.breadcrumbs a {
+  color: var(--subtle);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.breadcrumbs a:hover {
+  color: var(--text-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .breadcrumbs strong {
+  display: block;
+  overflow: hidden;
   color: var(--text-soft);
   font-weight: 600;
+  text-overflow: ellipsis;
 }
 
 .search-trigger {
@@ -1615,8 +1658,9 @@ tr:last-child td {
   }
 
   .mobile-scrim {
+    /* Matches the drawer, which now starts below the top bar. */
     position: fixed;
-    inset: 0;
+    inset: var(--topbar-height) 0 0 0;
     z-index: 29;
     display: block;
     visibility: hidden;
@@ -1659,8 +1703,12 @@ tr:last-child td {
 }
 
 @media (max-width: 700px) {
+  /* Drives .topbar height and the sidebar's top offset together. */
+  :root {
+    --topbar-height: 58px;
+  }
+
   .topbar {
-    height: 58px;
     padding: 0 18px;
   }
 

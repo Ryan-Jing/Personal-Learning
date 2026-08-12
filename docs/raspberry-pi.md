@@ -135,9 +135,12 @@ Run this once on the Pi:
 
 ```bash
 sudo tailscale serve --bg --https=443 --set-path=/commonplace/ http://127.0.0.1:3001/commonplace/
+sudo tailscale serve --bg --https=443 --set-path=/commonplace/assets/ http://127.0.0.1:3001/assets/
 ```
 
 Open `https://<machine-name>.<tailnet>.ts.net/commonplace/` from any authenticated device on the same tailnet.
+
+The second route is required because the app page routes live under `/commonplace`, while the Vinext production server serves built CSS, JavaScript, and font assets from `/assets` internally. Externally, browsers still request those files under `/commonplace/assets/...`, so Tailscale needs to rewrite that asset prefix back to the internal `/assets/...` path.
 
 Check or remove the proxy configuration with:
 
@@ -169,6 +172,7 @@ Refresh Tailscale Serve only when the local port or base path changed:
 
 ```bash
 sudo tailscale serve --bg --https=443 --set-path=/commonplace/ http://127.0.0.1:3001/commonplace/
+sudo tailscale serve --bg --https=443 --set-path=/commonplace/assets/ http://127.0.0.1:3001/assets/
 tailscale serve status
 ```
 

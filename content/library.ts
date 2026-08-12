@@ -21,6 +21,10 @@ import { sensorFusionFoundationsNotes } from "./sensor-fusion-foundations-notes"
 import { sensorFusionEstimationNotes } from "./sensor-fusion-estimation-notes";
 import { sensorFusionAdvancedNotes } from "./sensor-fusion-advanced-notes";
 import { sensorFusionCaseStudies } from "./sensor-fusion-case-studies";
+import { cameraSystemsNotes } from "./camera-systems-notes";
+import { accessLockSystemsNotes } from "./access-lock-systems-notes";
+import { cameraOpticsIspNotes } from "./camera-optics-isp-notes";
+import { accessSecurityPowerNotes } from "./access-security-power-notes";
 
 export type Accent = "yellow" | "orange" | "aqua" | "blue" | "purple" | "green";
 
@@ -445,6 +449,44 @@ export const collections: Collection[] = [
       "fuzzy-logic-and-inference",
       "neural-networks-for-sensor-fusion",
       "sensor-fusion-case-studies",
+    ],
+  },
+  {
+    id: "camera-systems",
+    libraryId: "technical",
+    title: "Camera systems & imaging",
+    description: "Image sensors, camera electrical integration, optics and image quality, video protocols, validation, and production test.",
+    focus: "Imaging systems",
+    mark: "◉",
+    accent: "aqua",
+    noteSlugs: [
+      "camera-system-architecture",
+      "image-sensor-electrical-behavior",
+      "optics-lenses-and-imaging-geometry",
+      "camera-power-clocks-and-layout",
+      "camera-interfaces-and-protocols",
+      "isp-pipeline-and-video-encoding",
+      "camera-image-quality-and-calibration",
+      "camera-testing-validation-and-production",
+    ],
+  },
+  {
+    id: "access-lock-systems",
+    libraryId: "technical",
+    title: "Access & lock systems",
+    description: "Door locks, alarms, credential readers, supervised circuits, EE/ME co-design, safety/security architecture, and validation.",
+    focus: "Security hardware",
+    mark: "▣",
+    accent: "orange",
+    noteSlugs: [
+      "access-control-system-architecture",
+      "electric-locks-and-door-hardware",
+      "credential-readers-and-access-protocols",
+      "credential-security-and-attack-resistance",
+      "alarms-sensors-and-false-alarm-control",
+      "access-power-and-battery-operated-locks",
+      "ee-me-co-design-for-lock-products",
+      "access-system-validation-and-production",
     ],
   },
   {
@@ -3324,6 +3366,10 @@ export const notes: Note[] = [
   ...sensorFusionEstimationNotes,
   ...sensorFusionAdvancedNotes,
   ...sensorFusionCaseStudies,
+  ...cameraSystemsNotes,
+  ...accessLockSystemsNotes,
+  ...cameraOpticsIspNotes,
+  ...accessSecurityPowerNotes,
 ];
 
 export type SearchEntry = {
@@ -3349,3 +3395,24 @@ export const searchEntries: SearchEntry[] = notes.map((note) => {
 
 export const getLibrary = (id: string) => libraries.find((library) => library.id === id);
 export const getNote = (slug: string) => notes.find((note) => note.slug === slug)!;
+
+/**
+ * Compact lookup tables for the breadcrumb trail. The app shell is a client
+ * component, so it receives this from the server instead of importing the note
+ * content directly — that would pull every note body into the client bundle.
+ */
+export type NavIndex = {
+  notes: Record<string, { title: string; collectionId: string }>;
+  collections: Record<string, { title: string; libraryId: string }>;
+  libraries: Record<string, { title: string }>;
+};
+
+export const navIndex: NavIndex = {
+  notes: Object.fromEntries(
+    notes.map((note) => [note.slug, { title: note.title, collectionId: note.collectionId }]),
+  ),
+  collections: Object.fromEntries(
+    collections.map((collection) => [collection.id, { title: collection.title, libraryId: collection.libraryId }]),
+  ),
+  libraries: Object.fromEntries(libraries.map((library) => [library.id, { title: library.title }])),
+};

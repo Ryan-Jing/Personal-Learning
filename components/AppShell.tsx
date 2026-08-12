@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SearchEntry } from "@/content/library";
+import type { NavIndex, SearchEntry } from "@/content/library";
 
 const primaryNav = [
   { href: "/", label: "Overview", glyph: "⌂" },
@@ -20,17 +20,64 @@ function routePath(pathname: string) {
   return routeStart >= 0 ? `/${segments.slice(routeStart).join("/")}` : "/";
 }
 
-function breadcrumbFor(pathname: string) {
+type Crumb = { label: string; href?: string };
+
+/**
+ * Builds the full trail — Overview / library / collection / page — so every
+ * ancestor is a link back to its own page. Unknown ids degrade to a generic
+ * label rather than throwing, so 404s and future routes still render a bar.
+ */
+function breadcrumbFor(pathname: string, index: NavIndex): Crumb[] {
   const path = routePath(pathname);
-  if (path === "/") return ["Library", "Overview"];
-  if (path.includes("/library/technical")) return ["Library", "Technical"];
-  if (path.includes("/library/personal")) return ["Library", "Personal"];
-  if (path.startsWith("/collections/")) return ["Library", "Collection"];
-  if (path.startsWith("/notes/")) return ["Library", "Study note"];
-  return ["Library"];
+  const trail: Crumb[] = [{ label: "Overview", href: "/" }];
+  const [section, id] = path.split("/").filter(Boolean);
+
+  const pushLibrary = (libraryId: string | undefined, isCurrent: boolean) => {
+    if (!libraryId) return;
+    const library = index.libraries[libraryId];
+    if (!library) return;
+    trail.push({ label: library.title, href: isCurrent ? undefined : `/library/${libraryId}` });
+  };
+
+  const pushCollection = (collectionId: string | undefined, isCurrent: boolean) => {
+    if (!collectionId) return;
+    const collection = index.collections[collectionId];
+    if (!collection) return;
+    pushLibrary(collection.libraryId, false);
+    trail.push({ label: collection.title, href: isCurrent ? undefined : `/collections/${collectionId}` });
+  };
+
+  if (section === "library" && id) {
+    if (index.libraries[id]) pushLibrary(id, true);
+    else trail.push({ label: "Library" });
+  } else if (section === "collections" && id) {
+    if (index.collections[id]) pushCollection(id, true);
+    else trail.push({ label: "Collection" });
+  } else if (section === "notes" && id) {
+    const note = index.notes[id];
+    if (note) {
+      pushCollection(note.collectionId, false);
+      trail.push({ label: note.title });
+    } else {
+      trail.push({ label: "Study note" });
+    }
+  }
+
+  // The deepest crumb is always the current page, so it is never a link.
+  const last = trail[trail.length - 1];
+  if (last) delete last.href;
+  return trail;
 }
 
-export function AppShell({ children, searchEntries }: { children: React.ReactNode; searchEntries: SearchEntry[] }) {
+export function AppShell({
+  children,
+  searchEntries,
+  navIndex,
+}: {
+  children: React.ReactNode;
+  searchEntries: SearchEntry[];
+  navIndex: NavIndex;
+}) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,7 +85,7 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
   const [peek, setPeek] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const breadcrumbs = breadcrumbFor(pathname);
+  const breadcrumbs = useMemo(() => breadcrumbFor(pathname, navIndex), [pathname, navIndex]);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -96,7 +143,12 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
     const pointerQuery = window.matchMedia("(min-width: 921px) and (pointer: fine)");
     if (!pointerQuery.matches) return;
     const SIDEBAR_WIDTH = 264;
+    // Must match --topbar-height in globals.css: the bar sits above the sidebar,
+    // so its strip is excluded from the trigger zone and breadcrumb links can be
+    // hovered and clicked without the sidebar sliding out over the page.
+    const TOPBAR_HEIGHT = 64;
     function onMouseMove(event: MouseEvent) {
+      if (event.clientY <= TOPBAR_HEIGHT) return;
       if (event.clientX <= window.innerWidth * 0.1) setPeek(true);
       else if (event.clientX > SIDEBAR_WIDTH) setPeek(false);
     }
@@ -166,25 +218,28 @@ export function AppShell({ children, searchEntries }: { children: React.ReactNod
         </nav>
       </aside>
 
-      <main className="app-main">
-        <header className="topbar">
-          <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Open navigation">☰</button>
-          <div className="breadcrumbs" aria-label="Breadcrumb">
-            {breadcrumbs.map((crumb, index) => (
-              <span key={crumb}>
-                {index > 0 && <span aria-hidden="true">/</span>}
-                {index === breadcrumbs.length - 1 ? <strong>{crumb}</strong> : crumb}
-              </span>
-            ))}
-          </div>
-          <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search library">
-            <span aria-hidden="true">⌕</span>
-            <span>Search your library</span>
-            <kbd>⌘ K</kbd>
-          </button>
-        </header>
-        {children}
-      </main>
+      <header className="topbar">
+        <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Open navigation">☰</button>
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          {breadcrumbs.map((crumb, index) => (
+            <span className="crumb" key={`${crumb.label}-${index}`}>
+              {index > 0 && <span className="crumb-sep" aria-hidden="true">/</span>}
+              {crumb.href ? (
+                <Link href={crumb.href}>{crumb.label}</Link>
+              ) : (
+                <strong aria-current="page">{crumb.label}</strong>
+              )}
+            </span>
+          ))}
+        </nav>
+        <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search library">
+          <span aria-hidden="true">⌕</span>
+          <span>Search your library</span>
+          <kbd>⌘ K</kbd>
+        </button>
+      </header>
+
+      <main className="app-main">{children}</main>
 
       {searchOpen && (
         <div className="search-backdrop" role="presentation" onMouseDown={closeSearch}>

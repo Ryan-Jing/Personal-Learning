@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { AppShell } from "@/components/AppShell";
-import { searchEntries } from "@/content/library";
+import { navIndex, searchEntries } from "@/content/library";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/jetbrains-mono/600.css";
@@ -60,7 +60,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <AppShell searchEntries={searchEntries}>{children}</AppShell>
+        <AppShell searchEntries={searchEntries} navIndex={navIndex}>{children}</AppShell>
       </body>
     </html>
   );
